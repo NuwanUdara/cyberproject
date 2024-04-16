@@ -2,18 +2,17 @@ import os
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 from cryptography.fernet import Fernet
-from base64 import b64encode, b64decode
+from base64 import b64decode
 import socket
 
 def get_payload(input_string):
     # Output : should be a dictionary as following 
     # payload = {'key': contains encrypted key, 'data': contains encrypted data}
-    return
-
+    return { 'key': input_string.split('|')[0], 'data': input_string.split('|')[1]}
 
 def receive_data(private_key_path):
     # get the hostname
-    host = .gethostname()
+    host = socket.gethostname()
     # initiate port no above 1024
     port = 5000  
 
@@ -25,7 +24,7 @@ def receive_data(private_key_path):
     # configure how many clients the server can listen simultaneously
     server_socket.listen(2)
     # accept new connection
-    conn, address =
+    conn, address = server_socket.accept()
     print("Connection from: " + str(address))
 
     while True:
@@ -36,7 +35,7 @@ def receive_data(private_key_path):
             break
         payload = get_payload(str(data))
         #initiate hybrid decryption
-        decr_ans = 
+        decr_ans = hybrid_dec(payload,private_key_path)
         print("Received message: " + str(decr_ans))
 
     conn.close()  # close the connection
@@ -44,7 +43,7 @@ def receive_data(private_key_path):
 
 def hybrid_dec(payload,private_key_path):
     # Read the private key
-    with open("private.pem", 'rb') as key_file:
+    with open(private_key_path, 'rb') as key_file:
         private_key = RSA.import_key(key_file.read())
 
     # Decode the symmetric key from base64
@@ -54,12 +53,12 @@ def hybrid_dec(payload,private_key_path):
     enc_data  = b64decode(payload['data'])
 
     # Decrypt the key with RSA and get the symmetric key
-    cipher_rsa = .new()
-    symmetric_key = cipher_rsa.decrypt( )
+    cipher_rsa = PKCS1_OAEP.new(private_key)
+    symmetric_key = cipher_rsa.decrypt(enc_symmetric_key)
 
     # Decrypt the data
-    fernet = 
-    data = fernet.
+    fernet = Fernet(symmetric_key)
+    data = fernet.decrypt(enc_data).decode()
 
     return data
 
