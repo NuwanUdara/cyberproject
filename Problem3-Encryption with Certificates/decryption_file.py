@@ -1,11 +1,12 @@
 from Crypto.PublicKey import RSA
 from Crypto.Cipher import PKCS1_OAEP
 import os
+import Crypto
 
 def decrypt_file(encrypted_file_path, private_key_path, output_file_path):
     # Use the proper read write formats where necessary (its missing in the code)
     # Read the encrypted data
-    with open(encrypted_file_path,) as encrypted_file:
+    with open(encrypted_file_path,'rb') as encrypted_file:
         encrypted_data = encrypted_file.read()
 
     # Read the private key
@@ -13,12 +14,12 @@ def decrypt_file(encrypted_file_path, private_key_path, output_file_path):
         private_key = RSA.import_key(key_file.read())
 
     # Decrypt the data with RSA
-    cipher_rsa = .new()
-    decrypted_data = cipher_rsa.decrypt()
+    cipher_rsa = PKCS1_OAEP.new(private_key,hashAlgo=Crypto.Hash.SHA256)
+    decrypted_data = cipher_rsa.decrypt(encrypted_data)
 
     # Write the decrypted data to the output file
-    with open(output_file_path,) as decrypted_file:
-        decrypted_file.write()
+    with open(output_file_path,'wb') as decrypted_file:
+        decrypted_file.write(decrypted_data)
 
     print(f'Decryption complete. Decrypted file saved to: {output_file_path}')
 
